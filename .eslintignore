@@ -1,0 +1,5 @@
+src/rex-plugins.d.ts
+node_modules
+package-lock.json
+node_modules/phaser3-rex-plugins-types
+build

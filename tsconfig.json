@@ -1,0 +1,33 @@
+{
+	"compilerOptions": {
+		"target": "es2015",
+		"outDir": "./build/",
+		"strictPropertyInitialization": false,
+		"noImplicitAny": true,
+		"strictNullChecks": true,
+		"strict": true,
+		"allowJs": true,
+		"importHelpers": true,
+		"sourceMap": true,
+		"moduleResolution": "Node",
+		"experimentalDecorators": true,
+		"esModuleInterop": true,
+		"allowSyntheticDefaultImports": true,
+		"jsx": "preserve",
+		"resolveJsonModule": true,
+		"baseUrl": ".",
+		"paths": {
+			"@/*": ["src/scripts/*"],
+			"@data/*": ["src/scripts/data/*"],
+			"@enums/*": ["src/scripts/enums/*"],
+			"@utils/*": ["src/scripts/utils/*"],
+			"@types/*": ["src/scripts/types/*"],
+			"@ui/*": ["src/scripts/ui/*"],
+			"@config/*": ["src/scripts/config/*"]
+		},
+
+		"typeRoots": ["src/declarations", "node_modules/@types", "node_module/phaser/types"],
+		"types": ["phaser", "node"]
+	},
+	"include": ["src/**/*"]
+}
