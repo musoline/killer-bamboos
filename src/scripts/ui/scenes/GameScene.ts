@@ -4,7 +4,10 @@ import {Character} from "../Character";
 import {BambooObstacle} from "../BambooObstacle";
 import {EAnimationName} from "@/enums/EAnimationName";
 import {TEGameResult} from "@/types/TEGameResult";
-import {PlacementUtil} from "@/utils/PlacementUtil";
+import {EGameResult} from "@/enums/EGameResult";
+import {AnimationUtil} from "@/utils/AnimationsUtil";
+import {TEAnimationName} from "@/types/TEAnimationName";
+import {TAnimationDetail} from "@/types/TAnimationDetail";
 
 export default class GameScene extends Phaser.Scene {
 	game: Game;
@@ -34,35 +37,46 @@ export default class GameScene extends Phaser.Scene {
 	}
 	createBamboos() {
 		const bambooWithBomb = [
-			{x: 100, y: 1110, t: PlacementUtil.getRandomSecond(1, 5), t_d: PlacementUtil.getRandomSecond(6, 10)},
-			{x: 300, y: 1110, t: PlacementUtil.getRandomSecond(3, 10), t_d: PlacementUtil.getRandomSecond(11, 5)},
+			{x: 100, y: 1110},
+			{x: 300, y: 1110},
 
-			{x: 300, y: 900, t: PlacementUtil.getRandomSecond(1, 5), t_d: PlacementUtil.getRandomSecond(6, 10)},
-			{x: 500, y: 900, t: PlacementUtil.getRandomSecond(3, 7), t_d: PlacementUtil.getRandomSecond(8, 12)},
-			{x: 700, y: 900, t: PlacementUtil.getRandomSecond(1, 5), t_d: PlacementUtil.getRandomSecond(6, 13)},
-			{x: 900, y: 900, t: PlacementUtil.getRandomSecond(1, 9), t_d: PlacementUtil.getRandomSecond(10, 13)},
-			{x: 1400, y: 900, t: PlacementUtil.getRandomSecond(6, 8), t_d: PlacementUtil.getRandomSecond(8, 21)},
+			{x: 300, y: 900},
+			{x: 500, y: 900},
+			{x: 700, y: 900},
+			{x: 900, y: 900},
+			{x: 1400, y: 900},
 
-			{x: 100, y: 690, t: PlacementUtil.getRandomSecond(5, 10), t_d: PlacementUtil.getRandomSecond(10, 22)},
-			{x: 300, y: 690, t: PlacementUtil.getRandomSecond(5, 10), t_d: PlacementUtil.getRandomSecond(10, 15)},
-			{x: 500, y: 690, t: PlacementUtil.getRandomSecond(5, 10), t_d: PlacementUtil.getRandomSecond(15, 25)},
-			{x: 900, y: 690, t: PlacementUtil.getRandomSecond(5, 10), t_d: PlacementUtil.getRandomSecond(15, 18)},
-			{x: 1300, y: 690, t: PlacementUtil.getRandomSecond(5, 10), t_d: PlacementUtil.getRandomSecond(13, 23)},
-			{x: 1500, y: 690, t: PlacementUtil.getRandomSecond(5, 10), t_d: PlacementUtil.getRandomSecond(13, 19)}
+			{x: 100, y: 690},
+			{x: 300, y: 690},
+			{x: 500, y: 690},
+			{x: 900, y: 690},
+			{x: 1300, y: 690},
+			{x: 1500, y: 690},
+
+			{x: 300, y: 480},
+			{x: 500, y: 480},
+			{x: 900, y: 480},
+			{x: 1300, y: 480},
+			{x: 1500, y: 480}
 		];
 
-		this.bamboosWithBomb = bambooWithBomb.map((bwb) => new BambooObstacle(this, bwb.x, bwb.y, bwb.t, bwb.t_d));
+		this.bamboosWithBomb = bambooWithBomb.map((bwb) => new BambooObstacle(this, bwb.x, bwb.y));
 	}
 
 	setGameResult(result: TEGameResult) {
 		this.gameResult = result;
-		this.character.anims.play(EAnimationName.DIE, true);
+		this.character.anims.play(result === EGameResult.LOST ? EAnimationName.DIE : EAnimationName.WIN, true);
+		this.character.body!.velocity.x = 0;
+		this.character.body!.velocity.y = 0;
+		setTimeout(() => {
+			this.scene.restart();
+			this.gameResult = null;
+		}, 3000);
 	}
 
 	createUserInputEvents() {
 		const right = this.input.keyboard?.addKey(Phaser.Input.Keyboard.KeyCodes.RIGHT);
 		const left = this.input.keyboard?.addKey(Phaser.Input.Keyboard.KeyCodes.LEFT);
-		const down = this.input.keyboard?.addKey(Phaser.Input.Keyboard.KeyCodes.DOWN);
 		const up = this.input.keyboard?.addKey(Phaser.Input.Keyboard.KeyCodes.UP);
 
 		right?.on("down", () => this.characterGoRight());
@@ -79,11 +93,6 @@ export default class GameScene extends Phaser.Scene {
 			this.character.anims.play(EAnimationName.RUN);
 			this.character.anims.stop();
 		});
-
-		down?.on("down", () => {
-			this.character.anims.play(EAnimationName.DIE);
-		});
-		down?.on("up", () => {});
 	}
 
 	characterGoLeft() {
@@ -110,32 +119,20 @@ export default class GameScene extends Phaser.Scene {
 	}
 
 	createCharacterAnimations() {
-		const animationsDetails = [
+		const animationsDetails: TAnimationDetail[] = [
 			{name: EAnimationName.RUN, endFrame: 8},
 			{name: EAnimationName.WIN, endFrame: 7},
 			{name: EAnimationName.CLIMB, endFrame: 7},
 			{name: EAnimationName.DIE, endFrame: 7}
 		];
 
-		animationsDetails.forEach((animationDetails) => {
-			if (this.anims.get(animationDetails.name) !== undefined) return;
-
-			this.anims.create({
-				key: `${animationDetails.name}`,
-				frames: this.anims.generateFrameNames(`c-${animationDetails.name}`, {
-					prefix: `${animationDetails.name}-`,
-					start: 0,
-					end: animationDetails.endFrame,
-					suffix: ".png"
-				}),
-				frameRate: 7,
-				repeat: -1
-			});
+		animationsDetails.forEach((animationDetail: TAnimationDetail) => {
+			AnimationUtil.createAnimation(this, animationDetail);
 		});
 	}
 
 	createCharacter() {
-		this.character = new Character(this, 200, 800);
+		this.character = new Character(this, 200, 900);
 
 		this.createCharacterAnimations();
 
@@ -167,24 +164,23 @@ export default class GameScene extends Phaser.Scene {
 
 		this.ladders.setOrigin(0.5, 0.5).setDepth(3);
 
-		this.physics.add.overlap(
-			this.character,
-			this.ladders,
-			(character: any, ladder: any) => {
-				character.lockedTo = ladder;
-				character.setCharacterState(ECharacterState.CLIMB);
-			},
-			(character: any, ladder: any) => {
-				return (
-					character.body.left >= ladder.body.left &&
-					character.body.right <= ladder.body.right &&
-					((this.cursors.up.isDown && character.body.bottom - character.body.deltaY() > ladder.body.top) ||
-						this.cursors.down.isDown)
-				);
-			},
-			this
+		this.physics.add.overlap(this.character, this.ladders, this.elementsCollide, this.elementsCollideProcess, this);
+	}
+
+	private elementsCollide(character: any, ladder: any) {
+		character.lockedTo = ladder;
+		character.setCharacterState(ECharacterState.CLIMB);
+	}
+
+	private elementsCollideProcess(character: any, ladder: any) {
+		return (
+			character.body.left >= ladder.body.left &&
+			character.body.right <= ladder.body.right &&
+			((this.cursors.up.isDown && character.body.bottom - character.body.deltaY() > ladder.body.top) ||
+				this.cursors.down.isDown)
 		);
 	}
+
 	passThru(character: any, ladder: any) {
 		return character.characterState !== ECharacterState.CLIMB;
 	}
@@ -195,7 +191,7 @@ export default class GameScene extends Phaser.Scene {
 
 	update(time: any, delta: any) {
 		if (this.character.body!.bottom < 220) {
-			console.log("game Won");
+			this.setGameResult(EGameResult.WIN);
 			this.character.anims.play(EAnimationName.WIN);
 		}
 		this.character.update(time, delta);

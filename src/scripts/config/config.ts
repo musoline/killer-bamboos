@@ -18,7 +18,7 @@ const config: Phaser.Types.Core.GameConfig = {
 			debug: true
 		},
 		arcade: {
-			debug: true }
+			debug: false }
 	},
 
 	transparent: true,
